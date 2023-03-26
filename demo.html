@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Preview</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+
+  .image-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 50%;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .image-preview {
+    width: 150px;
+    height: 150px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 4px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.641);
+  }
+  .comparison::before{
+    content: "";
+    display: block;
+    width: inherit;
+    height: inherit;
+    /* 图片素材https://unsplash.com/photos/qiSGdBYWtSY */
+    background-image: url(001.ori.png);
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-position: center center;
+    background-size: contain; 
+  }
+  .comparison::after{
+      content: "";
+      display: block;
+      width: inherit;
+      height: inherit;
+      /* 图片素材https://unsplash.com/photos/qiSGdBYWtSY */
+      background-image: url(001.result.png);
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-position: center center;
+      background-size: contain; 
+  }
+  .comparison{
+    width: 512px;
+    height: 768px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0px 2px 6px rgba(0,0,0,.15);
+    border-radius: 4px;
+  }
+  .comparison::before{
+    filter: grayscale(100%);
+  }
+  .comparison::after{
+      /* 为图片加入遮罩阴影 */
+      /* 
+          clip-path：inset(上 右 下 左)
+      */
+      clip-path: inset(0 0 0 calc(var(--slide)/10* 1%));
+  }
+  /* 进度条 */
+  .slider{
+    position: absolute;
+    top: 0;
+    left: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+    margin: 0;
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+}
+.slider::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 768px;
+    background: #000;
+    box-shadow: 0px 0px 6px rgba(0, 0, 0, .5);
+    border-radius: 2px;
+    cursor: ew-resize;
+}
+</style>
+  </head>
+  <body>
+    <div class="comparison" style="--slide: 500">
+      <!-- 当前的子的父亲改变子的变量值 1.-->
+      <input type="range" class="slider" min="1" max="1000" value="900" 
+          oninput="sum()" >
+      <!-- 2.使用函数 -->
+      <input type="range" class="slider" min="1" max="1000" value="900" 
+      oninput="this.parentNode.style.setProperty('--slide',`${this.value}`)" >
+          <!-- setProperty()  方法接口为一个声明了CSS样式的对象设置一个新的值  -->
+  </div>
+  <script>
+      var i = document.querySelector('.slider')
+      function sum(){
+          i.parentNode.style.setProperty('--slide',i.value)
+      }
+  </script>
+    <div class="image-container"></div>
+    <script>
+      async function createImagePreview(file, parent) {
+        // 创建图像预览元素
+        const preview = document.createElement('div');
+        preview.classList.add('image-preview');
+        console.info(`${file}`)
+        preview.style.backgroundImage = `url(${file})`;
+          // 将图像预览元素添加到容器中
+        parent.appendChild(preview);
+        }
+    
+  async function getLocalImageFiles() {
+    const response = await fetch('./images');
+    const text = await response.text();
+    console.log(text)
+    const regex = /<a\s+(?:[^>]*?\s+)?href=(["'])(.*?)\1/;  
+    const files = text.match(regex)
+    //.filter((file) => file.endsWith('result.png'));
+    <!-- console.log(files) -->
+    return files;
+  }
+
+  async function main() {
+        // 获取本地图片文件并创建预览
+        const localImageFiles = await getLocalImageFiles();
+        console.log(localImageFiles)
+        const imageContainer = document.querySelector('.image-container');
+        for (let i=1;i<=8;i++) {
+          const file = i.toString().padStart(3, '0').concat('.ori.png')
+          console.log(file)
+          createImagePreview(file, imageContainer);
+        }
+        const previews = document.querySelectorAll('.image-preview');
+        console.info(previews)
+        previews.forEach((preview) => {
+          preview.addEventListener('click', function() {
+            const ori_image = this.style.backgroundImage;
+            const process_image = ori_image.replace('ori.png', 'result.png')
+            //const leftElement = document.querySelector('.comparison');
+            const beforeElement = document.createElement('style');
+            beforeElement.textContent = `.comparison::before { background-image: ${ori_image}; }`;
+            document.head.appendChild(beforeElement);
+            const afterElement = document.createElement('style');
+            afterElement.textContent = `.comparison::after { background-image: ${process_image}; }`;
+            document.head.appendChild(afterElement);
+            
+            //leftElement.style.backgroundImage = imageUrl;
+            
+            const slider = document.querySelector('.slider');
+            slider.addEventListener('mouseup', function() {
+              this.value = this.max;
+            });
+            
+            const comparisonElement = document.querySelector('.comparison');
+            comparisonElement.style.setProperty('--slide', '900');
+            slider.value = 900;
+          });
+        });    
+      }
+    
+  main();
+</script>
+  </body>
+</html>

@@ -13,15 +13,25 @@
         align-items: center;
         min-height: 100vh;
       }
-
-
+    h2 {
+      font-family: 'Arial', sans-serif;
+      font-size: 24px;
+      color: #333;
+      text-align: top;
+      margin-bottom: 20px;
+      background-color: #f5f5f5;
+      border: 1px solid #ccc;
+      box-shadow: 0 2px 2px rgba(0, 0, 0, 0.1);
+    }
   .image-container {
     display: flex;
     flex-wrap: wrap;
+    background-color: #f5f5f5;
     gap: 10px;
     max-width: 50%;
-    padding: 20px;
+    padding: 50px;
     box-sizing: border-box;
+    border: 1px solid #ccc;
   }
 
   .image-preview {
@@ -30,7 +40,20 @@
     background-size: cover;
     background-position: center;
     border-radius: 4px;
+    transition: all 0.3s ease-in-out;
+  }
+  .image-preview.active {
+    width: 150px;
+    height: 150px;
+    background-size: yellow;
+    background-position: center;
+    border-radius: 4px;
     box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.641);
+    transition: all 0.3s ease-in-out;
+  }
+  .preview-item.active {
+    background-color: yellow;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   }
   .comparison::before{
     content: "";
@@ -104,6 +127,7 @@
   </head>
   <body>
     <div class="comparison" style="--slide: 500">
+      
       <!-- 当前的子的父亲改变子的变量值 1.-->
       <input type="range" class="slider" min="1" max="1000" value="900" 
           oninput="sum()" >
@@ -118,10 +142,12 @@
           i.parentNode.style.setProperty('--slide',i.value)
       }
   </script>
-    <div class="image-container"></div>
+    <div class="image-container">
+    </div>
     <script>
       async function createImagePreview(file, parent) {
         // 创建图像预览元素
+        
         const preview = document.createElement('div');
         preview.classList.add('image-preview');
         console.info(`${file}`)
@@ -152,10 +178,20 @@
           createImagePreview(file, imageContainer);
         }
         const previews = document.querySelectorAll('.image-preview');
+        previews.forEach(preview => {
+          preview.classList.add('preview-item');
+        });
         console.info(previews)
         previews.forEach((preview) => {
           preview.addEventListener('click', function() {
+            /*preview.classList.add('large');*/
             const ori_image = this.style.backgroundImage;
+            previews.forEach(item => {
+            if (item !== preview) {
+                item.classList.remove('active');
+              }
+            });
+            preview.classList.toggle('active');
             const process_image = ori_image.replace('ori.png', 'result.png')
             //const leftElement = document.querySelector('.comparison');
             const beforeElement = document.createElement('style');
@@ -175,8 +211,25 @@
             const comparisonElement = document.querySelector('.comparison');
             comparisonElement.style.setProperty('--slide', '900');
             slider.value = 900;
+             // 延迟 3 秒并将 .preview 元素返回到其原始大小
+            /*setTimeout(() => {
+              preview.classList.remove('large');
+            }, 3000);*/
           });
-        });    
+        });
+        previews.forEach((preview) =>{
+          preview.addEventListener('mouseenter', ()=>{
+            preview.style.width='200px';
+            preview.style.height='200px';
+          })
+        });
+        previews.forEach((preview) =>{
+          preview.addEventListener('mouseleave', ()=>{
+            preview.style.width='150px';
+            preview.style.height='150px';
+          })
+        });
+        
       }
     
   main();
